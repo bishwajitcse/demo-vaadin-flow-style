@@ -1,13 +1,20 @@
 package com.demo.application.views.demo;
 
-import com.vaadin.flow.component.combobox.ComboBox;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+
+import com.demo.application.views.pojo.Client;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.Grid.SelectionMode;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.grid.HeaderRow;
 import com.vaadin.flow.component.grid.dataview.GridListDataView;
-import com.vaadin.flow.component.gridpro.GridPro;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
@@ -16,47 +23,63 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.LocalDateRenderer;
-import com.vaadin.flow.data.renderer.NumberRenderer;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
-import java.text.NumberFormat;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-import org.apache.commons.lang3.StringUtils;
 
 @PageTitle("Demo")
 @Route(value = "demo")
 @RouteAlias(value = "")
-public class DemoView extends Div {
+public class MainView extends Div {
 
-    private GridPro<Client> grid;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private Grid<Client> grid;
     private GridListDataView<Client> gridListDataView;
 
     private Grid.Column<Client> clientColumn;
-    private Grid.Column<Client> amountColumn;
-    private Grid.Column<Client> statusColumn;
     private Grid.Column<Client> dateColumn;
 
-    public DemoView() {
-        addClassName("demo-view");
+    public MainView() {
+       
         setSizeFull();
-        createGrid();
-        add(grid);
+        addTopBar();
+        addBanner();
+        addCategoryView();
+        add(createGrid());
+    }
+    
+    private void addCategoryView() {
+    	CategoryView categoryLayout = new CategoryView();
+    	add(categoryLayout);
+    }
+    
+    private void addBanner() {
+    	BannerView banner = new BannerView();
+    	add(banner);
+    }
+    private void addTopBar() {
+    	TopBarView topBar = new TopBarView();
+    	add(topBar);
     }
 
-    private void createGrid() {
+    private Component createGrid() {
+    	Div gridLayout = new Div();
+    	gridLayout.addClassName("container");
         createGridComponent();
         addColumnsToGrid();
         addFiltersToGrid();
+        gridLayout.add(grid);
+        grid.setWidth("100%");
+        grid.setHeight("400px");
+        return gridLayout;
     }
 
     private void createGridComponent() {
-        grid = new GridPro<>();
+        grid = new Grid<>();
         grid.setSelectionMode(SelectionMode.MULTI);
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_COLUMN_BORDERS);
         grid.setHeight("100%");
@@ -67,8 +90,6 @@ public class DemoView extends Div {
 
     private void addColumnsToGrid() {
         createClientColumn();
-        createAmountColumn();
-        createStatusColumn();
         createDateColumn();
     }
 
@@ -77,6 +98,8 @@ public class DemoView extends Div {
             HorizontalLayout hl = new HorizontalLayout();
             hl.setAlignItems(Alignment.CENTER);
             Image img = new Image(client.getImg(), "");
+            img.getStyle().set("border-radius","50%");
+            img.getStyle().set("width","40px");
             Span span = new Span();
             span.setClassName("name");
             span.setText(client.getClient());
@@ -85,28 +108,12 @@ public class DemoView extends Div {
         })).setComparator(client -> client.getClient()).setHeader("Client");
     }
 
-    private void createAmountColumn() {
-        amountColumn = grid
-                .addEditColumn(Client::getAmount,
-                        new NumberRenderer<>(client -> client.getAmount(), NumberFormat.getCurrencyInstance(Locale.US)))
-                .text((item, newValue) -> item.setAmount(Double.parseDouble(newValue)))
-                .setComparator(client -> client.getAmount()).setHeader("Amount");
-    }
-
-    private void createStatusColumn() {
-        statusColumn = grid.addEditColumn(Client::getClient, new ComponentRenderer<>(client -> {
-            Span span = new Span();
-            span.setText(client.getStatus());
-            span.getElement().setAttribute("theme", "badge " + client.getStatus().toLowerCase());
-            return span;
-        })).select((item, newValue) -> item.setStatus(newValue), Arrays.asList("Pending", "Success", "Error"))
-                .setComparator(client -> client.getStatus()).setHeader("Status");
-    }
+   
 
     private void createDateColumn() {
         dateColumn = grid
                 .addColumn(new LocalDateRenderer<>(client -> LocalDate.parse(client.getDate()),
-                        DateTimeFormatter.ofPattern("M/d/yyyy")))
+                        DateTimeFormatter.ofPattern("dd.MM.yyyy")))
                 .setComparator(client -> client.getDate()).setHeader("Date").setWidth("180px").setFlexGrow(0);
     }
 
@@ -122,24 +129,6 @@ public class DemoView extends Div {
                 .addFilter(client -> StringUtils.containsIgnoreCase(client.getClient(), clientFilter.getValue())));
         filterRow.getCell(clientColumn).setComponent(clientFilter);
 
-        TextField amountFilter = new TextField();
-        amountFilter.setPlaceholder("Filter");
-        amountFilter.setClearButtonVisible(true);
-        amountFilter.setWidth("100%");
-        amountFilter.setValueChangeMode(ValueChangeMode.EAGER);
-        amountFilter.addValueChangeListener(event -> gridListDataView.addFilter(client -> StringUtils
-                .containsIgnoreCase(Double.toString(client.getAmount()), amountFilter.getValue())));
-        filterRow.getCell(amountColumn).setComponent(amountFilter);
-
-        ComboBox<String> statusFilter = new ComboBox<>();
-        statusFilter.setItems(Arrays.asList("Pending", "Success", "Error"));
-        statusFilter.setPlaceholder("Filter");
-        statusFilter.setClearButtonVisible(true);
-        statusFilter.setWidth("100%");
-        statusFilter.addValueChangeListener(
-                event -> gridListDataView.addFilter(client -> areStatusesEqual(client, statusFilter)));
-        filterRow.getCell(statusColumn).setComponent(statusFilter);
-
         DatePicker dateFilter = new DatePicker();
         dateFilter.setPlaceholder("Filter");
         dateFilter.setClearButtonVisible(true);
@@ -149,13 +138,6 @@ public class DemoView extends Div {
         filterRow.getCell(dateColumn).setComponent(dateFilter);
     }
 
-    private boolean areStatusesEqual(Client client, ComboBox<String> statusFilter) {
-        String statusFilterValue = statusFilter.getValue();
-        if (statusFilterValue != null) {
-            return StringUtils.equals(client.getStatus(), statusFilterValue);
-        }
-        return true;
-    }
 
     private boolean areDatesEqual(Client client, DatePicker dateFilter) {
         LocalDate dateFilterValue = dateFilter.getValue();

@@ -1,4 +1,4 @@
-package com.demo.application.views.demo;
+package com.demo.application.views.pojo;
 
 public class Client {
 

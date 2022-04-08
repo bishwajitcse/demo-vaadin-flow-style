@@ -1,0 +1,18 @@
+:host(.catservice) {
+        border-right: 1px solid #ccc;
+        background-color: #fff;
+        width: 170px;
+        height: 100px;
+        padding: 0px;
+        border-radius: 0;   
+        background-color: #fff;
+        box-shadow: 0 2px 5px 0 rgb(0 0 0 / 10%);
+        color: #00a381;
+      }
+      :host(.catservice) .vaadin-button-container{
+        display:flex;
+        flex-direction:column;
+      }
+      :host(.catservice) [part="prefix"]{
+        margin-top: -20px;
+      }

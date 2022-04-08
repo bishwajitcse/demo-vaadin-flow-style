@@ -1,0 +1,40 @@
+.logo{
+	color:#fff;
+}
+.header {
+	 --lumo-base-color: #00a181;
+    background-color: var(--lumo-base-color);
+    align-items: center;
+    box-shadow: var(--lumo-box-shadow-s);
+    display: flex;
+    width: 100%;
+        padding: 20px 10%!important;
+}
+.navbar-menu{
+	justify-content: end;
+	flex-grow: 1;
+}
+.navbar-menu a{
+	color:#fff;
+}
+.banner-container{
+      position: relative;
+}
+  .banner-overlay{
+  
+        position: absolute;
+        display: block;
+        height: 460px;
+        width: auto;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0,0,0,.3);
+        z-index: 2;
+        cursor: pointer;
+  }
+
+.search{
+      z-index: 3;
+}
